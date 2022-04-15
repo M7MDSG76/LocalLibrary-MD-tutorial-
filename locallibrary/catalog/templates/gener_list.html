@@ -1,0 +1,23 @@
+{% extends 'base_generic.html' %}
+
+{% block title%} Genres {% endblock %}
+
+{%block content%} 
+    <h1>Genres List</h1>
+    {% if geners %}
+        <ul>
+            {% for gener in geners %}
+                <li>
+                    {{ gener.name }}
+                </li>
+            {% endfor %}
+        </ul>
+    {%endif%}
+    <hr>
+    <br>
+    <p>Total Number of:</p>
+        <ul>
+            <li>Genres: {{geners_num}}</li>
+            <li>books: {{books_num}}</li>
+        </ul>
+{%endblock%}

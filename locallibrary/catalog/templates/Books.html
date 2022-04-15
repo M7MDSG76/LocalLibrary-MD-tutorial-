@@ -1,0 +1,18 @@
+{% extends 'base_generic.html' %}
+
+{% block title %} All Books {% endblock %}
+
+{% block content %} 
+    <table> 
+        <tr>   
+            <th>Book Name</th>
+            <th>Author</th>
+        </tr>
+        {% for book in books %}
+            <tr>    
+                <td class="book-title-td" >{{book.title}}</td> 
+                <td>{{book.author}}</td>
+            </tr>
+        {% endfor %} 
+    </table> 
+{% endblock %}

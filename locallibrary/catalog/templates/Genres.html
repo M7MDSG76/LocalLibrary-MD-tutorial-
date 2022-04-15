@@ -1,0 +1,20 @@
+{% extends 'base_generic.html'%}
+
+{% block title %}Genre{% endblock %}
+
+
+{%block content %}
+<table>
+    <tr>
+        <th>Genre</th>
+    </tr>
+    {%for genre in genres%}
+        <tr>
+            <td>{{genre}}</td>
+        </tr>
+    {%endfor%}     
+</table>
+    <ul>
+        
+    </ul>
+{%endblock%}

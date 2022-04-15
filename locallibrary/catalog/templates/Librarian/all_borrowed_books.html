@@ -1,0 +1,33 @@
+{% extends 'base_generic.html'%}
+
+{% block content %}
+    {% if perms.catalog.can_view_book_instances %}
+       <h1 class="text-center">Book Instances</h1>
+        <br>
+        {% if available_book_instances %}
+        <h2 class="text-success">Available:</h2>
+        <ul>
+            {% for book_instance in available_book_instances %}
+                <li><p>{{book_instance.book.title}}</p></li>
+            {% endfor %}
+        </ul> 
+        <hr>
+        {% endif %}      
+        {% if borrowed_book_instances %}
+        <h2 class="text-danger">On loan:</h2>
+        <ul>
+            {% for borrowed_bookinstance in borrowed_book_instances %}
+            <li>
+                <p> {{borrowed_bookinstance.book.title}} {% if borrowed_bookinstance.is_overdue %} <strong class="text-danger"> ({{borrowed_bookinstance.due_back}})</strong>{%else%} <strong class="text-warning">({{borrowed_bookinstance.due_back}})</strong>{%endif%} {{borrowed_bookinstance.borrower}}</p>
+                {% if perms.catalog.can_mark_returned %}- <a href="{% url 'renew-book-librarians' borrowed_bookinstance.id %}">Renew</a>  {% endif %}
+            </li>
+            <br>
+            <br>
+            {% endfor%}
+        </ul>
+
+        {% endif %}
+    {% else %}
+    <p>sorry, you are not allowed to view this page.</p>
+    {% endif %}
+{% endblock %}

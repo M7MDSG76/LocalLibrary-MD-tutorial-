@@ -1,0 +1,37 @@
+    {% extends 'base_generic.html' %}
+
+{% block title %} Authors {% endblock %}
+
+{% block content %}
+    <h1>Authors List</h1>
+    {% if authors%}
+        <ul>
+            {%for author in authors%}
+                <li>
+                    <a href = '{{author.get_absolute_url}}'>
+                        {{ author.first_name }} {{author.last_name}}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+    <h3>No authors in the library</h3>
+    {% endif %}
+    {%block paginated%}
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="page-links">
+                {% if page_obj.has_previous %}
+                    <a href="{{ request.path }}?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+                <span class="page-current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="{{ request.path }}?page={{ page_obj.next_page_number }}">next</a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+  {% endblock %}
+{% endblock %}
