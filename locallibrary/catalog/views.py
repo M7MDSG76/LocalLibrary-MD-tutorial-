@@ -1,5 +1,7 @@
+from ast import Delete
 from mimetypes import init
 from multiprocessing import context
+from pyexpat import model
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
 from django.views.generic import ListView, DetailView
@@ -12,9 +14,13 @@ from django.contrib.auth.decorators import login_required, permission_required
 import datetime
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
-from django.urls import reverse
-from catalog.forms import RenewBookForm
-# Create your views here.
+from django.urls import reverse, reverse_lazy
+from catalog.forms import *
+
+# Generic editing views. 
+from django.views.generic.edit import DeleteView, CreateView, UpdateView
+
+from django.utils.translation import gettext_lazy as _
 
 def index(request): 
     num_books = Book.objects.all().count
@@ -65,9 +71,13 @@ class BookListView(ListView):
         num_visits = self.request.session.get('num_visits', 0)
         self.request.session['num_visits'] = num_visits + 1
         return super().get(self.request, *args, **kwargs)
-    # overriding the get_queryset method to customize the queryset.  
+ 
+ 
+ 
+    # Overriding the get_queryset method to customize the queryset.  
     # def get_queryset(self):
     #     return Book.objects.filter(title__icontains='h')[:5]
+
 
 class AuthorListView(ListView):
     model = Author
@@ -77,10 +87,8 @@ class AuthorListView(ListView):
     context_object_name = 'authors'
     
     paginate_by = 5
-    # overriding the Author class to customize the queryset.(Not customized in this case)
-    def get_queryset(self):
-        return Author.objects.all()
-    
+   
+    # Add counter for the view visits
     def get_context_data(self, **kwargs):
         context = super(AuthorListView, self).get_context_data(**kwargs)
         context.update({
@@ -133,8 +141,7 @@ class BookDetailView(DetailView):
         self.request.session['num_visits'] = num_visits + 1
         return super().get(self.request, *args, **kwargs)
     
-    
-    
+        
 class AuthorDetailView(DetailView):
     model = Author
     template_name = 'Author_detail.html'
@@ -166,7 +173,7 @@ class LoanedBooksByUserListView(LoginRequiredMixin, ListView):
     
 class AllLoanedBooksListView(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     """
-        List View to view to list all borrowed books.
+        List View to view for all borrowed books.
     """
     
     model = BookInstance
@@ -186,47 +193,94 @@ class AllLoanedBooksListView(PermissionRequiredMixin, LoginRequiredMixin, ListVi
 
 
 @login_required
-@permission_required('catalog.can_mark_returned', raise_exception=True)
-def renew_book_librarians(request, pk):
-    book_instance = get_object_or_404(BookInstance, pk = pk)
+@permission_required('catalog.can_mark_returned')
+def renew_book_librarian(request, pk):
     
-    # If the request is POST means the page has been visited before and the user submit some data.
+    book_instance = get_object_or_404(BookInstance, pk=pk)
+    
     if request.method == 'POST':
         
-        #Create form instance and populate it with data from the POST.
-        form = RenewBookForm(request.POST)
+        #form = RenewBookForm(request.POST)
+        form = RenewBookModelForm(request.POST)
         
-        # Check if the form is valid
         if form.is_valid():
-            
-            # Process the data in form.cleaned_data as required (here we just write it to the model due_back field)
-            book_instance.due_back = form.cleaned_data['renewal_date']
+            book_instance.due_back = form.cleaned_data['due_back']
             book_instance.save()
             
-            # Redirect to new url
-            return HttpResponseRedirect(reverse('all-borrowed-books')) 
+            return HttpResponseRedirect(reverse('all-borrowed-books'))
         
-   # If this is a GET (or any other method) create the default form.  
+        # If the form submitted with errors        
+        context = {
+            'form' : form,
+            'book_instance' : book_instance
+        }
+
+        return render(request, 'Librarian/book_renew_librarian.html', context) 
+    
     else:
         
-        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks= 3) 
-        form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
+        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
         
-    context = {
-        'form': form,
-        'book_instance': book_instance
-    }
-    
-    return render(request, 'Librarian/book_renew_librarian.html', context)
- 
+        # form = RenewBookForm(initial={'renewal_date' : proposed_renewal_date})
+        form = RenewBookModelForm(initial={'due_back': proposed_renewal_date})
         
+        context = {
+            'form' : form,
+            'book_instance' : book_instance
+        }
+
+        return render(request, 'Librarian/book_renew_librarian.html', context)    
+   
+   
+    
+#Book Edite Views
+class BookCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView ):
+    model = Book
+    fields = ['title', 'author', 'summery', 'isbn', 'gener', 'lang']
+    template_name = 'create_book_form.html'
+    permission_required = 'catalog.can_create_book'
     
     
+class BookUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Book
+    fields = ['title', 'author', 'summery', 'isbn', 'gener', 'lang']
+    template_name = 'update_book_form.html'
+    permission_required = 'catalog.can_create_book'
     
     
+class BookDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')
+    template_name = 'confirm_delete_book_form.html'
+    permission_required = 'catalog.can_create_book'
+    
+
+
+# Author Edite Views     
+class AuthorCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth', 'date_of_death', 'lang']
+    initial = {'date_of_birth':'2013-01-01','lang': 'a'} 
+    help_texts = {'lang': _('Choose Languages you write with!!!')} # Not working!!!!
+    template_name = 'Librarian/create_author_form.html'
+    permission_required = 'catalog.can_create_book'
+   
+   
+class AuthorUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Author 
+    fields = '__all__' # Not recomended for security reasons(potential security issues if new fields added).
+    template_name = 'Librarian/update_author_form.html'
+    permission_required = 'catalog.can_create_book'
     
     
-      
+class AuthorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')
+    template_name = 'Librarian/confirm_delete_author_form.html'
+    permission_required = 'catalog.can_create_book'
+    
+    
+        
     
     
     

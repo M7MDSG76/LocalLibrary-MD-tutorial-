@@ -42,11 +42,11 @@ class Author(models.Model):
 
   
 class Book(models.Model):
-    title = models.CharField(max_length=200, help_text="Book title")
+    title = models.CharField(max_length=60, help_text="Book title")
     
     author = models.ForeignKey(Author, on_delete = models.SET_NULL, null=True)
     
-    summery = models.TextField(max_length = 2000,
+    summery = models.TextField(max_length = 200,
                                help_text="write a brief summary of the book")
     
     isbn = models.CharField('ISBN', max_length=13, unique=True,
@@ -58,7 +58,7 @@ class Book(models.Model):
                              null = True)
     
     class Meta:
-        permissions = (('m m nmmn b','View book instances'),)
+        permissions = (('view_book_c','View book instances'), ('can_create_book', 'Can create book'))  # 'Can create book' == 'Can edite book' or 'Can change book'
         
     def __str__(self):
         return self.title

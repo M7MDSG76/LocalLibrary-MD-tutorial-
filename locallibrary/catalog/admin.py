@@ -7,6 +7,7 @@ from .models import *
 admin.site.register(Gener)
 # admin.site.register(BookInstance)
 admin.site.register(Languages)
+
 class BookInline(admin.TabularInline):
     model = Book
     

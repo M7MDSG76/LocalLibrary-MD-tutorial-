@@ -11,8 +11,12 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = "cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag"
 import os
-# from catalog import catalog
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,10 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '--ff6x8rka0=6k+m0+@o@l2(o0+b*3(-9jxpe02$xo8w-d(r6+'
+# SECRET_KEY = '--ff6x8rka0=6k+m0+@o@l2(o0+b*3(-9jxpe02$xo8w-d(r6+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
+
 
 ALLOWED_HOSTS = []
 
@@ -85,6 +91,7 @@ DATABASES = {
 }
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -128,3 +135,4 @@ LOGIN_REDIRECT_URL = '/'
 
 # Show the reset pass after request the pass reset.
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
